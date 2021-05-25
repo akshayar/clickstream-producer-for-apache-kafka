@@ -45,8 +45,7 @@ class KafkaProducerFactory {
     private static final Logger logger = LogManager.getLogger(KafkaClickstreamClient.class);
 
     private static String getSaslScramString() {
-        String secretNamePrefix = "AmazonMSK_";
-        String secret = Secrets.getSecret(secretNamePrefix + KafkaClickstreamClient.saslscramUser, Secrets.getSecretsManagerClient(KafkaClickstreamClient.region));
+        String secret = Secrets.getSecret(KafkaClickstreamClient.saslscramUser, Secrets.getSecretsManagerClient(KafkaClickstreamClient.region));
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode;
         try {
@@ -57,7 +56,8 @@ class KafkaProducerFactory {
             throw new RuntimeException(String.format("Error reading returned secret for user %s \n", KafkaClickstreamClient.saslscramUser));
         }
         String password = jsonNode.get("password").asText();
-        return "org.apache.kafka.common.security.scram.ScramLoginModule required username=" + KafkaClickstreamClient.saslscramUser + " password=" + password + ";";
+        String username=jsonNode.get("username").asText();
+        return "org.apache.kafka.common.security.scram.ScramLoginModule required username=" + username + " password=" + password + ";";
     }
 
     KafkaProducerFactory(String propertiesFilePath, Boolean sslEnable, Boolean mTLSEnable, Boolean saslScramEnable, Boolean glueSchemaRegistry) {
